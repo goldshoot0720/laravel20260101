@@ -1,0 +1,2 @@
+[Wed Dec 31 13:54:52.421039 2025] [access_compat:error] [pid 3308468:tid 3308514] [client 206.81.24.74:0] AH01797: client denied by server configuration: /home/feng/web/laravel.tpe12thmayor2025to2038.com/public_html/server-status
+[Wed Dec 31 13:55:02.472778 2025] [proxy_fcgi:error] [pid 3308467:tid 3308508] [client 206.81.24.74:0] AH01071: Got error 'Primary script unknown'
