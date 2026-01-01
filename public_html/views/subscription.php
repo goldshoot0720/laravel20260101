@@ -37,8 +37,8 @@ ob_start();
 <!-- 訂閱項目 -->
 <div class="grid grid-1">
     <?php foreach($subscriptions as $item): 
-        $daysLeft = $subscription->getDaysLeft($item['todate']);
-        $status = $subscription->getStatus($item['todate']);
+        $daysLeft = $subscription->getDaysLeft($item['nextdate']);
+        $status = $subscription->getStatus($item['nextdate']);
         $statusColor = [
             'success' => '#10b981',
             'warning' => '#f59e0b', 
@@ -59,8 +59,13 @@ ob_start();
                 <div>
                     <h3 style="margin-bottom: 5px;"><?= htmlspecialchars($item['name']) ?></h3>
                     <div style="font-size: 14px; opacity: 0.7;">
-                        網站: <?= htmlspecialchars($item['url'] ?: '未設定') ?>
+                        網站: <?= htmlspecialchars($item['site'] ?: '未設定') ?>
                     </div>
+                    <?php if (!empty($item['account'])): ?>
+                    <div style="font-size: 12px; opacity: 0.6; margin-top: 5px;">
+                        帳號: <?= htmlspecialchars($item['account']) ?>
+                    </div>
+                    <?php endif; ?>
                 </div>
                 <span style="background: <?= $statusColor ?>; color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px;">
                     <?= $statusText ?>
@@ -74,7 +79,7 @@ ob_start();
                 </div>
                 <div>
                     <div style="font-size: 12px; opacity: 0.6;">下次付款</div>
-                    <div style="font-weight: 600;"><?= $item['todate'] ?></div>
+                    <div style="font-weight: 600;"><?= $item['nextdate'] ?></div>
                 </div>
                 <div>
                     <div style="font-size: 12px; opacity: 0.6;">剩餘天數</div>
