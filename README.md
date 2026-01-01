@@ -68,22 +68,65 @@
 
 1. **環境要求**
    - PHP 7.4 或更高版本
+   - MySQL 5.7 或更高版本
    - Apache/Nginx Web 服務器
    - 支援 .htaccess 重寫
+   - PDO 和 PDO_MySQL 擴展
 
-2. **部署步驟**
+2. **資料庫配置**
+   
+   系統支援自動環境檢測：
+   
+   **本地測試環境：**
+   - 主機: localhost
+   - 用戶: root  
+   - 密碼: (空白)
+   - 資料庫: feng_laravel
+   
+   **遠端上線環境：**
+   - 主機: localhost
+   - 用戶: feng_laravel
+   - 密碼: ym0Tagood129
+   - 資料庫: feng_laravel
+
+3. **安裝步驟**
+   
+   **方法一：使用安裝程序（推薦）**
    ```bash
-   # 克隆或上傳文件到 public_html 目錄
-   # 確保 Web 服務器指向 public_html 目錄
-   # 設置適當的文件權限
+   # 1. 上傳文件到 public_html 目錄
+   # 2. 確保資料庫已創建
+   # 3. 訪問安裝頁面
+   http://your-domain.com/install.php
+   # 4. 按照頁面指示完成安裝
+   ```
+   
+   **方法二：手動安裝**
+   ```bash
+   # 1. 上傳文件到 public_html 目錄
+   # 2. 設置文件權限
    chmod 755 public_html/
    chmod 644 public_html/*.php
+   
+   # 3. 執行資料庫遷移
+   cd public_html/database
+   php migrations.php
    ```
 
-3. **配置**
-   - 確保 Apache mod_rewrite 模組已啟用
-   - 檢查 .htaccess 文件權限
-   - 配置 PHP 錯誤報告（生產環境建議關閉）
+4. **驗證安裝**
+   - 訪問系統首頁確認正常運行
+   - 檢查各功能模組是否正常
+   - 確認資料庫連接和數據顯示
+
+## 資料庫結構
+
+系統包含以下主要數據表：
+
+- **gallery** - 圖片庫管理
+- **videos** - 影片庫管理  
+- **food_items** - 食品管理
+- **subscriptions** - 訂閱管理
+- **users** - 用戶管理
+- **system_settings** - 系統設置
 
 ## 使用指南
 

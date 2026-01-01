@@ -10,6 +10,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
+// 載入資料庫配置和模型
+require_once '../config/database.php';
+require_once '../models/Gallery.php';
+require_once '../models/Video.php';
+require_once '../models/FoodItem.php';
+require_once '../models/Subscription.php';
+
 // 獲取請求方法和路徑
 $method = $_SERVER['REQUEST_METHOD'];
 $path = $_GET['path'] ?? '';
@@ -60,75 +67,153 @@ function handleStats($method) {
         throw new Exception('方法不允許', 405);
     }
     
-    $stats = [
-        'images' => [
-            'total' => 241,
-            'size' => '625.95 MB',
-            'formats' => [
-                'PNG' => 192,
-                'JPG' => 41,
-                'JPEG' => 8
+    try {
+        $gallery = new Gallery();
+        $video = new Video();
+        $food = new FoodItem();
+        $subscription = new Subscription();
+        
+        $galleryStats = $gallery->getStatistics();
+        $videoStats = $video->getStatistics();
+        $foodStats = $food->getStatistics();
+        $subscriptionStats = $subscription->getStatistics();
+        
+        $stats = [
+            'images' => [
+                'total' => $galleryStats['total'],
+                'size' => $galleryStats['total_size_formatted'],
+                'ai_generated' => $galleryStats['ai_generated'],
+                'formats' => []
+            ],
+            'videos' => [
+                'total' => $videoStats['total'],
+                'size' => $videoStats['total_size_formatted'],
+                'duration' => $videoStats['total_duration_formatted']
+            ],
+            'food' => [
+                'total' => $foodStats['total'],
+                'expiring_3_days' => $foodStats['expiring_3_days'],
+                'expiring_7_days' => $foodStats['expiring_7_days'],
+                'expiring_30_days' => $foodStats['expiring_30_days'],
+                'expired' => $foodStats['expired']
+            ],
+            'subscription' => [
+                'total' => $subscriptionStats['total'],
+                'active' => $subscriptionStats['active'],
+                'expiring_3_days' => $subscriptionStats['expiring_3_days'],
+                'expiring_7_days' => $subscriptionStats['expiring_7_days'],
+                'expired' => $subscriptionStats['expired'],
+                'monthly_cost' => $subscriptionStats['monthly_cost'],
+                'yearly_cost' => $subscriptionStats['yearly_cost']
             ]
-        ],
-        'videos' => [
-            'total' => 2,
-            'size' => '6.22 MB',
-            'duration' => '02:08'
-        ],
-        'food' => [
-            'total' => 15,
-            'expiring_3_days' => 0,
-            'expiring_7_days' => 0,
-            'expiring_30_days' => 2
-        ],
-        'subscription' => [
-            'total' => 24,
-            'expiring_3_days' => 0,
-            'expiring_7_days' => 1,
-            'expired' => 0
-        ]
-    ];
-    
-    echo json_encode([
-        'success' => true,
-        'data' => $stats
-    ]);
+        ];
+        
+        // 處理圖片格式統計
+        foreach ($galleryStats['type_stats'] as $type) {
+            $stats['images']['formats'][$type['file_type']] = $type['count'];
+        }
+        
+        echo json_encode([
+            'success' => true,
+            'data' => $stats
+        ]);
+        
+    } catch (Exception $e) {
+        throw new Exception('獲取統計數據失敗: ' . $e->getMessage(), 500);
+    }
 }
 
 // 圖片庫處理
 function handleGallery($method, $input) {
+    $gallery = new Gallery();
+    
     switch ($method) {
         case 'GET':
             $page = $_GET['page'] ?? 1;
             $limit = $_GET['limit'] ?? 20;
             $search = $_GET['search'] ?? '';
+            $category = $_GET['category'] ?? '';
             
-            // 模擬圖片數據
-            $images = generateMockImages($page, $limit, $search);
-            
-            echo json_encode([
-                'success' => true,
-                'data' => $images,
-                'pagination' => [
-                    'page' => (int)$page,
-                    'limit' => (int)$limit,
-                    'total' => 241
-                ]
-            ]);
+            try {
+                if ($search) {
+                    $images = $gallery->searchImages($search, $limit);
+                    $total = count($images);
+                } elseif ($category) {
+                    $images = $gallery->getByCategory($category, $limit);
+                    $total = $gallery->count(['category' => $category]);
+                } else {
+                    $result = $gallery->paginate($page, $limit);
+                    $images = $result['data'];
+                    $total = $result['total'];
+                }
+                
+                echo json_encode([
+                    'success' => true,
+                    'data' => $images,
+                    'pagination' => [
+                        'page' => (int)$page,
+                        'limit' => (int)$limit,
+                        'total' => $total
+                    ]
+                ]);
+                
+            } catch (Exception $e) {
+                throw new Exception('獲取圖片數據失敗: ' . $e->getMessage(), 500);
+            }
             break;
             
         case 'POST':
-            // 新增圖片
-            echo json_encode([
-                'success' => true,
-                'message' => '圖片上傳成功',
-                'data' => [
-                    'id' => uniqid(),
-                    'filename' => $input['filename'] ?? 'new_image.jpg',
-                    'size' => $input['size'] ?? '1.2 MB',
-                    'uploaded_at' => date('Y-m-d H:i:s')
-                ]
-            ]);
+            try {
+                $image = $gallery->createImage($input);
+                
+                echo json_encode([
+                    'success' => true,
+                    'message' => '圖片新增成功',
+                    'data' => $image
+                ]);
+                
+            } catch (Exception $e) {
+                throw new Exception('新增圖片失敗: ' . $e->getMessage(), 500);
+            }
+            break;
+            
+        case 'PUT':
+            $id = $_GET['id'] ?? null;
+            if (!$id) {
+                throw new Exception('缺少圖片ID', 400);
+            }
+            
+            try {
+                $image = $gallery->updateImage($id, $input);
+                
+                echo json_encode([
+                    'success' => true,
+                    'message' => '圖片更新成功',
+                    'data' => $image
+                ]);
+                
+            } catch (Exception $e) {
+                throw new Exception('更新圖片失敗: ' . $e->getMessage(), 500);
+            }
+            break;
+            
+        case 'DELETE':
+            $id = $_GET['id'] ?? null;
+            if (!$id) {
+                throw new Exception('缺少圖片ID', 400);
+            }
+            
+            try {
+                $gallery->delete($id);
+                
+                echo json_encode([
+                    'success' => true,
+                    'message' => '圖片刪除成功'
+                ]);
+                
+            } catch (Exception $e) {
+                throw new Exception('刪除圖片失敗: ' . $e->getMessage(), 500);
+            }
             break;
             
         default:
@@ -138,33 +223,45 @@ function handleGallery($method, $input) {
 
 // 影片庫處理
 function handleVideos($method, $input) {
+    $video = new Video();
+    
     switch ($method) {
         case 'GET':
-            $videos = [
-                [
-                    'id' => 1,
-                    'title' => '鋒兄的傳奇人生',
-                    'description' => '鋒兄人生歷程紀錄片',
-                    'duration' => '00:45',
-                    'size' => '2.01 MB',
-                    'format' => 'MP4',
-                    'thumbnail' => '/assets/images/video1_thumb.jpg'
-                ],
-                [
-                    'id' => 2,
-                    'title' => '鋒兄進化Show 🔥',
-                    'description' => '鋒兄進化歷程山歷程',
-                    'duration' => '01:23',
-                    'size' => '4.21 MB',
-                    'format' => 'MP4',
-                    'thumbnail' => '/assets/images/video2_thumb.jpg'
-                ]
-            ];
+            $search = $_GET['search'] ?? '';
+            $category = $_GET['category'] ?? '';
             
-            echo json_encode([
-                'success' => true,
-                'data' => $videos
-            ]);
+            try {
+                if ($search) {
+                    $videos = $video->searchVideos($search);
+                } elseif ($category) {
+                    $videos = $video->getByCategory($category);
+                } else {
+                    $videos = $video->getAllVideos();
+                }
+                
+                echo json_encode([
+                    'success' => true,
+                    'data' => $videos
+                ]);
+                
+            } catch (Exception $e) {
+                throw new Exception('獲取影片數據失敗: ' . $e->getMessage(), 500);
+            }
+            break;
+            
+        case 'POST':
+            try {
+                $videoRecord = $video->createVideo($input);
+                
+                echo json_encode([
+                    'success' => true,
+                    'message' => '影片新增成功',
+                    'data' => $videoRecord
+                ]);
+                
+            } catch (Exception $e) {
+                throw new Exception('新增影片失敗: ' . $e->getMessage(), 500);
+            }
             break;
             
         default:
@@ -174,29 +271,48 @@ function handleVideos($method, $input) {
 
 // 食品管理處理
 function handleFood($method, $input) {
+    $food = new FoodItem();
+    
     switch ($method) {
         case 'GET':
-            $foods = generateMockFoods();
+            $search = $_GET['search'] ?? '';
+            $category = $_GET['category'] ?? '';
+            $status = $_GET['status'] ?? '';
             
-            echo json_encode([
-                'success' => true,
-                'data' => $foods
-            ]);
+            try {
+                if ($search) {
+                    $foods = $food->searchFoods($search);
+                } elseif ($category) {
+                    $foods = $food->getByCategory($category);
+                } elseif ($status) {
+                    $foods = $food->getByStatus($status);
+                } else {
+                    $foods = $food->getAllFoods();
+                }
+                
+                echo json_encode([
+                    'success' => true,
+                    'data' => $foods
+                ]);
+                
+            } catch (Exception $e) {
+                throw new Exception('獲取食品數據失敗: ' . $e->getMessage(), 500);
+            }
             break;
             
         case 'POST':
-            // 新增食品
-            echo json_encode([
-                'success' => true,
-                'message' => '食品新增成功',
-                'data' => [
-                    'id' => uniqid(),
-                    'name' => $input['name'] ?? '新食品',
-                    'quantity' => $input['quantity'] ?? 1,
-                    'expiry_date' => $input['expiry_date'] ?? date('Y-m-d', strtotime('+30 days')),
-                    'created_at' => date('Y-m-d H:i:s')
-                ]
-            ]);
+            try {
+                $foodItem = $food->createFood($input);
+                
+                echo json_encode([
+                    'success' => true,
+                    'message' => '食品新增成功',
+                    'data' => $foodItem
+                ]);
+                
+            } catch (Exception $e) {
+                throw new Exception('新增食品失敗: ' . $e->getMessage(), 500);
+            }
             break;
             
         default:
@@ -206,29 +322,48 @@ function handleFood($method, $input) {
 
 // 訂閱管理處理
 function handleSubscription($method, $input) {
+    $subscription = new Subscription();
+    
     switch ($method) {
         case 'GET':
-            $subscriptions = generateMockSubscriptions();
+            $search = $_GET['search'] ?? '';
+            $category = $_GET['category'] ?? '';
+            $status = $_GET['status'] ?? '';
             
-            echo json_encode([
-                'success' => true,
-                'data' => $subscriptions
-            ]);
+            try {
+                if ($search) {
+                    $subscriptions = $subscription->searchSubscriptions($search);
+                } elseif ($category) {
+                    $subscriptions = $subscription->getByCategory($category);
+                } elseif ($status) {
+                    $subscriptions = $subscription->getByStatus($status);
+                } else {
+                    $subscriptions = $subscription->getAllSubscriptions();
+                }
+                
+                echo json_encode([
+                    'success' => true,
+                    'data' => $subscriptions
+                ]);
+                
+            } catch (Exception $e) {
+                throw new Exception('獲取訂閱數據失敗: ' . $e->getMessage(), 500);
+            }
             break;
             
         case 'POST':
-            // 新增訂閱
-            echo json_encode([
-                'success' => true,
-                'message' => '訂閱新增成功',
-                'data' => [
-                    'id' => uniqid(),
-                    'name' => $input['name'] ?? '新訂閱',
-                    'price' => $input['price'] ?? 0,
-                    'next_payment' => $input['next_payment'] ?? date('Y-m-d', strtotime('+30 days')),
-                    'created_at' => date('Y-m-d H:i:s')
-                ]
-            ]);
+            try {
+                $sub = $subscription->createSubscription($input);
+                
+                echo json_encode([
+                    'success' => true,
+                    'message' => '訂閱新增成功',
+                    'data' => $sub
+                ]);
+                
+            } catch (Exception $e) {
+                throw new Exception('新增訂閱失敗: ' . $e->getMessage(), 500);
+            }
             break;
             
         default:
@@ -245,80 +380,47 @@ function handleSearch($method, $input) {
     $query = $input['query'] ?? '';
     $type = $input['type'] ?? 'all';
     
-    $results = [
-        'images' => [],
-        'videos' => [],
-        'food' => [],
-        'subscriptions' => []
-    ];
-    
-    // 模擬搜尋結果
-    if ($type === 'all' || $type === 'images') {
-        $results['images'] = array_slice(generateMockImages(1, 10, $query), 0, 5);
+    if (empty($query)) {
+        throw new Exception('搜尋關鍵字不能為空', 400);
     }
     
-    echo json_encode([
-        'success' => true,
-        'query' => $query,
-        'results' => $results
-    ]);
-}
-
-// 生成模擬圖片數據
-function generateMockImages($page = 1, $limit = 20, $search = '') {
-    $images = [];
-    $start = ($page - 1) * $limit;
-    
-    for ($i = $start; $i < $start + $limit && $i < 241; $i++) {
-        $images[] = [
-            'id' => $i + 1,
-            'filename' => 'image_' . str_pad($i + 1, 3, '0', STR_PAD_LEFT) . '.jpg',
-            'title' => '圖片 ' . ($i + 1),
-            'size' => rand(100, 9999) . ' KB',
-            'format' => rand(0, 1) ? 'PNG' : 'JPG',
-            'url' => 'https://picsum.photos/300/300?random=' . ($i + 1),
-            'created_at' => date('Y-m-d H:i:s', strtotime('-' . rand(1, 365) . ' days'))
+    try {
+        $results = [
+            'images' => [],
+            'videos' => [],
+            'food' => [],
+            'subscriptions' => []
         ];
+        
+        if ($type === 'all' || $type === 'images') {
+            $gallery = new Gallery();
+            $results['images'] = $gallery->searchImages($query, 10);
+        }
+        
+        if ($type === 'all' || $type === 'videos') {
+            $video = new Video();
+            $results['videos'] = $video->searchVideos($query, 10);
+        }
+        
+        if ($type === 'all' || $type === 'food') {
+            $food = new FoodItem();
+            $results['food'] = $food->searchFoods($query, 10);
+        }
+        
+        if ($type === 'all' || $type === 'subscriptions') {
+            $subscription = new Subscription();
+            $results['subscriptions'] = $subscription->searchSubscriptions($query, 10);
+        }
+        
+        echo json_encode([
+            'success' => true,
+            'query' => $query,
+            'type' => $type,
+            'results' => $results
+        ]);
+        
+    } catch (Exception $e) {
+        throw new Exception('搜尋失敗: ' . $e->getMessage(), 500);
     }
-    
-    return $images;
-}
-
-// 生成模擬食品數據
-function generateMockFoods() {
-    $foods = [
-        ['name' => '【張君雅】五香海苔休閒丸子', 'quantity' => 3, 'days_left' => 15, 'status' => 'success'],
-        ['name' => '【張君雅】日式串燒休閒丸子', 'quantity' => 6, 'days_left' => 16, 'status' => 'success'],
-        ['name' => '有機蘋果', 'quantity' => 5, 'days_left' => 7, 'status' => 'warning'],
-        ['name' => '新鮮牛奶', 'quantity' => 2, 'days_left' => 3, 'status' => 'error'],
-        ['name' => '全麥麵包', 'quantity' => 1, 'days_left' => 5, 'status' => 'warning']
-    ];
-    
-    return array_map(function($food, $index) {
-        return array_merge($food, [
-            'id' => $index + 1,
-            'price' => 'NT$ ' . rand(50, 500),
-            'location' => '未設定',
-            'expiry_date' => date('Y-m-d', strtotime('+' . $food['days_left'] . ' days'))
-        ]);
-    }, $foods, array_keys($foods));
-}
-
-// 生成模擬訂閱數據
-function generateMockSubscriptions() {
-    $subscriptions = [
-        ['name' => '天虎/黃信訊/心臟內科', 'price' => 530, 'days_left' => 1, 'status' => 'warning'],
-        ['name' => 'kiro pro', 'price' => 640, 'days_left' => 10, 'status' => 'success'],
-        ['name' => 'Netflix', 'price' => 390, 'days_left' => 15, 'status' => 'success'],
-        ['name' => 'Spotify', 'price' => 149, 'days_left' => 8, 'status' => 'warning']
-    ];
-    
-    return array_map(function($sub, $index) {
-        return array_merge($sub, [
-            'id' => $index + 1,
-            'url' => 'https://example.com',
-            'next_payment' => date('Y-m-d', strtotime('+' . $sub['days_left'] . ' days'))
-        ]);
-    }, $subscriptions, array_keys($subscriptions));
 }
 ?>

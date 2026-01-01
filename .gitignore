@@ -1,0 +1,115 @@
+# 系統文件
+.DS_Store
+Thumbs.db
+*.log
+
+# 編輯器文件
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 臨時文件
+*.tmp
+*.temp
+*.cache
+
+# 安裝鎖定文件
+public_html/install.lock
+
+# 測試和調試文件
+public_html/debug.php
+public_html/simple.php
+public_html/test.php
+
+# 環境配置文件（如果包含敏感信息）
+# public_html/config/database.php
+
+# 上傳文件目錄
+public_html/uploads/
+public_html/storage/
+
+# 備份文件
+*.bak
+*.backup
+
+# 壓縮文件
+*.zip
+*.tar.gz
+*.rar
+
+# PHP 相關
+vendor/
+composer.lock
+
+# Node.js 相關（如果使用）
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# 系統生成的文件
+*.pid
+*.seed
+*.pid.lock
+
+# 日誌文件
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 運行時數據
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# 可選的 npm 緩存目錄
+.npm
+
+# 可選的 eslint 緩存
+.eslintcache
+
+# Microbundle 緩存
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+
+# 可選的 REPL 歷史
+.node_repl_history
+
+# 輸出的二進制文件
+*.tgz
+
+# Yarn 完整性文件
+.yarn-integrity
+
+# dotenv 環境變量文件
+.env
+.env.test
+
+# parcel-bundler 緩存 (https://parceljs.org/)
+.cache
+.parcel-cache
+
+# Next.js 構建輸出
+.next
+
+# Nuxt.js 構建 / 生成輸出
+.nuxt
+dist
+
+# Gatsby 文件
+.cache/
+public
+
+# Storybook 構建輸出
+.out
+.storybook-out
+
+# Temporary folders
+tmp/
+temp/
