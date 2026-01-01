@@ -24,7 +24,7 @@ ob_start();
     <div style="text-align: center; padding: 40px 0;">
         <div style="font-size: 48px; margin-bottom: 20px;">🔥</div>
         <h3 style="margin-bottom: 10px;">鋒兄AI資訊系統</h3>
-        <p style="opacity: 0.8; margin-bottom: 30px;">智能管理您的影片和圖片收藏，支援智能分類和快速搜尋</p>
+        <p style="opacity: 0.8; margin-bottom: 30px;">智能管理您的食品和訂閱服務，支援智能分類和快速搜尋</p>
         
         <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 12px; margin: 20px 0;">
             <p style="margin-bottom: 15px;">鋒兄適習公開資訊 © 版權所有 2025 - 2125</p>
@@ -56,15 +56,7 @@ ob_start();
 </div>
 
 <!-- 功能統計 -->
-<div class="grid grid-4">
-    <div class="card stat-card fade-in">
-        <div class="stat-number stat-primary">241</div>
-        <div class="stat-label">總計圖片</div>
-    </div>
-    <div class="card stat-card fade-in">
-        <div class="stat-number stat-success">2</div>
-        <div class="stat-label">影片數量</div>
-    </div>
+<div class="grid grid-2">
     <div class="card stat-card fade-in">
         <div class="stat-number stat-warning">15</div>
         <div class="stat-label">食品項目</div>

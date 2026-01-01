@@ -84,12 +84,6 @@ function performSearch(query) {
     const currentPage = getCurrentPage();
     
     switch(currentPage) {
-        case 'gallery':
-            searchImages(query);
-            break;
-        case 'videos':
-            searchVideos(query);
-            break;
         case 'food':
             searchFood(query);
             break;
@@ -97,46 +91,6 @@ function performSearch(query) {
             searchSubscriptions(query);
             break;
     }
-}
-
-// 圖片搜尋
-function searchImages(query) {
-    const mediaItems = document.querySelectorAll('.media-item');
-    let visibleCount = 0;
-    
-    mediaItems.forEach(item => {
-        const title = item.querySelector('.media-title')?.textContent.toLowerCase() || '';
-        const info = item.querySelector('.media-info')?.textContent.toLowerCase() || '';
-        
-        if (title.includes(query) || info.includes(query) || query === '') {
-            item.style.display = 'block';
-            visibleCount++;
-        } else {
-            item.style.display = 'none';
-        }
-    });
-    
-    updateSearchResults(visibleCount, mediaItems.length);
-}
-
-// 影片搜尋
-function searchVideos(query) {
-    const videoCards = document.querySelectorAll('.card h3');
-    let visibleCount = 0;
-    
-    videoCards.forEach(title => {
-        const card = title.closest('.card');
-        const titleText = title.textContent.toLowerCase();
-        
-        if (titleText.includes(query) || query === '') {
-            card.style.display = 'block';
-            visibleCount++;
-        } else {
-            card.style.display = 'none';
-        }
-    });
-    
-    updateSearchResults(visibleCount, videoCards.length);
 }
 
 // 食品搜尋
@@ -310,8 +264,6 @@ function animateElements() {
 function updateStatistics() {
     // 模擬數據更新
     const stats = {
-        images: 241,
-        videos: 2,
         foods: 15,
         subscriptions: 24
     };
@@ -325,7 +277,7 @@ function updateDashboardStats(stats) {
     const statNumbers = document.querySelectorAll('.stat-number');
     
     statNumbers.forEach((el, index) => {
-        const values = [stats.images, stats.videos, stats.foods, stats.subscriptions];
+        const values = [stats.foods, stats.subscriptions];
         if (values[index]) {
             animateNumber(el, 0, values[index], 1000);
         }
@@ -359,8 +311,6 @@ function showWelcomeMessage() {
 // 獲取當前頁面
 function getCurrentPage() {
     const path = window.location.pathname;
-    if (path.includes('gallery')) return 'gallery';
-    if (path.includes('videos')) return 'videos';
     if (path.includes('food')) return 'food';
     if (path.includes('subscription')) return 'subscription';
     return 'dashboard';

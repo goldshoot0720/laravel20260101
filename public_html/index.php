@@ -32,8 +32,6 @@ if (empty($path)) {
 // 路由映射
 $routes = [
     'dashboard' => 'views/dashboard.php',
-    'gallery' => 'views/gallery.php',
-    'videos' => 'views/videos.php',
     'food' => 'views/food.php',
     'subscription' => 'views/subscription.php',
     'api' => 'api/handler.php'

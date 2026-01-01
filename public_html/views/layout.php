@@ -26,18 +26,6 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a href="/gallery" class="nav-link <?= ($current_page ?? '') === 'gallery' ? 'active' : '' ?>">
-                    <span class="nav-icon">🖼️</span>
-                    <span>圖片庫</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="/videos" class="nav-link <?= ($current_page ?? '') === 'videos' ? 'active' : '' ?>">
-                    <span class="nav-icon">🎬</span>
-                    <span>影片庫</span>
-                </a>
-            </li>
-            <li class="nav-item">
                 <a href="/food" class="nav-link <?= ($current_page ?? '') === 'food' ? 'active' : '' ?>">
                     <span class="nav-icon">🍎</span>
                     <span>食品管理</span>

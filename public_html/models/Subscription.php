@@ -2,7 +2,7 @@
 require_once 'BaseModel.php';
 
 class Subscription extends BaseModel {
-    protected $table = 'subscriptions';
+    protected $table = 'subscription';
     
     protected $fillable = [
         'name', 'description', 'website_url', 'category', 'price', 'currency',
