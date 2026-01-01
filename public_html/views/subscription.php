@@ -2,6 +2,11 @@
 $current_page = 'subscription';
 $title = '訂閱管理系統 - ' . SYSTEM_NAME;
 
+// 載入訂閱數據
+require_once 'models/SubscriptionOriginal.php';
+$subscription = new SubscriptionOriginal();
+$subscriptions = $subscription->getAllSubscriptions();
+
 ob_start();
 ?>
 
@@ -31,33 +36,60 @@ ob_start();
 
 <!-- 訂閱項目 -->
 <div class="grid grid-1">
-    <!-- 訂閱項目 1 -->
+    <?php foreach($subscriptions as $item): 
+        $daysLeft = $subscription->getDaysLeft($item['todate']);
+        $status = $subscription->getStatus($item['todate']);
+        $statusColor = [
+            'success' => '#10b981',
+            'warning' => '#f59e0b', 
+            'error' => '#ef4444',
+            'expired' => '#6b7280'
+        ][$status];
+        
+        $statusText = [
+            'success' => '正常',
+            'warning' => '即將到期',
+            'error' => '緊急',
+            'expired' => '已過期'
+        ][$status];
+    ?>
     <div class="card fade-in">
         <div style="padding: 20px; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; background: rgba(255,255,255,0.05);">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
                 <div>
-                    <h3 style="margin-bottom: 5px;">天虎/黃信訊/心臟內科</h3>
+                    <h3 style="margin-bottom: 5px;"><?= htmlspecialchars($item['name']) ?></h3>
                     <div style="font-size: 14px; opacity: 0.7;">
-                        網站: https://www.tcmg.com.tw/index.php/main/schedule_time?id=18
+                        網站: <?= htmlspecialchars($item['url'] ?: '未設定') ?>
                     </div>
                 </div>
-                <span style="background: #f59e0b; color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px;">即將到期</span>
+                <span style="background: <?= $statusColor ?>; color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px;">
+                    <?= $statusText ?>
+                </span>
             </div>
             
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 15px; margin-bottom: 15px;">
                 <div>
                     <div style="font-size: 12px; opacity: 0.6;">價格</div>
-                    <div style="font-weight: 600;">NT$ 530</div>
+                    <div style="font-weight: 600;"><?= $subscription->formatPrice($item['price']) ?></div>
                 </div>
                 <div>
                     <div style="font-size: 12px; opacity: 0.6;">下次付款</div>
-                    <div style="font-weight: 600;">2025-12-26</div>
+                    <div style="font-weight: 600;"><?= $item['todate'] ?></div>
                 </div>
                 <div>
                     <div style="font-size: 12px; opacity: 0.6;">剩餘天數</div>
-                    <div style="font-weight: 600; color: #f59e0b;">1 天</div>
+                    <div style="font-weight: 600; color: <?= $statusColor ?>;">
+                        <?= $daysLeft >= 0 ? $daysLeft . ' 天' : '已過期 ' . abs($daysLeft) . ' 天' ?>
+                    </div>
                 </div>
             </div>
+            
+            <?php if (!empty($item['note'])): ?>
+            <div style="margin-bottom: 15px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                <div style="font-size: 12px; opacity: 0.6; margin-bottom: 5px;">備註</div>
+                <div style="font-size: 14px;"><?= htmlspecialchars($item['note']) ?></div>
+            </div>
+            <?php endif; ?>
             
             <div style="display: flex; gap: 10px; justify-content: flex-end;">
                 <button class="btn btn-primary">編輯</button>
@@ -65,47 +97,14 @@ ob_start();
             </div>
         </div>
     </div>
-
-    <!-- 訂閱項目 2 -->
-    <div class="card fade-in">
-        <div style="padding: 20px; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; background: rgba(255,255,255,0.05);">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
-                <div>
-                    <h3 style="margin-bottom: 5px;">kiro pro</h3>
-                    <div style="font-size: 14px; opacity: 0.7;">
-                        網站: https://app.kiro.dev/account/
-                    </div>
-                </div>
-                <span style="background: #10b981; color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px;">正常</span>
-            </div>
-            
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 15px; margin-bottom: 15px;">
-                <div>
-                    <div style="font-size: 12px; opacity: 0.6;">價格</div>
-                    <div style="font-weight: 600;">NT$ 640</div>
-                </div>
-                <div>
-                    <div style="font-size: 12px; opacity: 0.6;">下次付款</div>
-                    <div style="font-weight: 600;">2026-01-01</div>
-                </div>
-                <div>
-                    <div style="font-size: 12px; opacity: 0.6;">剩餘天數</div>
-                    <div style="font-weight: 600; color: #10b981;">10 天</div>
-                </div>
-            </div>
-            
-            <div style="display: flex; gap: 10px; justify-content: flex-end;">
-                <button class="btn btn-primary">編輯</button>
-                <button class="btn btn-error">刪除</button>
-            </div>
-        </div>
-    </div>
+    <?php endforeach; ?>
 </div>
 
-<!-- 更多訂閱項目 -->
+<!-- 如果沒有數據，顯示示例數據 -->
+<?php if (empty($subscriptions)): ?>
 <div class="grid grid-2">
     <?php 
-    $subscriptions = [
+    $sampleSubscriptions = [
         ['name' => 'Netflix', 'price' => 390, 'days' => 15, 'status' => 'success', 'icon' => '🎬'],
         ['name' => 'Spotify', 'price' => 149, 'days' => 8, 'status' => 'warning', 'icon' => '🎵'],
         ['name' => 'Adobe Creative', 'price' => 1680, 'days' => 22, 'status' => 'success', 'icon' => '🎨'],
@@ -128,7 +127,7 @@ ob_start();
         ['name' => 'Mailchimp Pro', 'price' => 300, 'days' => 1, 'status' => 'error', 'icon' => '📧'],
     ];
     
-    foreach($subscriptions as $sub):
+    foreach($sampleSubscriptions as $sub):
         $statusColor = [
             'success' => '#10b981',
             'warning' => '#f59e0b', 
@@ -162,6 +161,7 @@ ob_start();
     </div>
     <?php endforeach; ?>
 </div>
+<?php endif; ?>
 
 <?php
 $content = ob_get_clean();

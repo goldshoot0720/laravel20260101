@@ -14,8 +14,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 require_once '../config/database.php';
 require_once '../models/Gallery.php';
 require_once '../models/Video.php';
-require_once '../models/FoodItem.php';
-require_once '../models/Subscription.php';
+require_once '../models/Food.php';
+require_once '../models/SubscriptionOriginal.php';
 
 // 獲取請求方法和路徑
 $method = $_SERVER['REQUEST_METHOD'];
@@ -70,8 +70,8 @@ function handleStats($method) {
     try {
         $gallery = new Gallery();
         $video = new Video();
-        $food = new FoodItem();
-        $subscription = new Subscription();
+        $food = new Food();
+        $subscription = new SubscriptionOriginal();
         
         $galleryStats = $gallery->getStatistics();
         $videoStats = $video->getStatistics();
@@ -271,7 +271,7 @@ function handleVideos($method, $input) {
 
 // 食品管理處理
 function handleFood($method, $input) {
-    $food = new FoodItem();
+    $food = new Food();
     
     switch ($method) {
         case 'GET':
@@ -322,7 +322,7 @@ function handleFood($method, $input) {
 
 // 訂閱管理處理
 function handleSubscription($method, $input) {
-    $subscription = new Subscription();
+    $subscription = new SubscriptionOriginal();
     
     switch ($method) {
         case 'GET':
@@ -403,12 +403,12 @@ function handleSearch($method, $input) {
         }
         
         if ($type === 'all' || $type === 'food') {
-            $food = new FoodItem();
+            $food = new Food();
             $results['food'] = $food->searchFoods($query, 10);
         }
         
         if ($type === 'all' || $type === 'subscriptions') {
-            $subscription = new Subscription();
+            $subscription = new SubscriptionOriginal();
             $results['subscriptions'] = $subscription->searchSubscriptions($query, 10);
         }
         

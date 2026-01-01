@@ -144,8 +144,8 @@
                 try {
                     require_once 'models/Gallery.php';
                     require_once 'models/Video.php';
-                    require_once 'models/FoodItem.php';
-                    require_once 'models/Subscription.php';
+                    require_once 'models/Food.php';
+                    require_once 'models/SubscriptionOriginal.php';
                     
                     $gallery = new Gallery();
                     $galleryCount = $gallery->count();
@@ -153,10 +153,10 @@
                     $video = new Video();
                     $videoCount = $video->count();
                     
-                    $food = new FoodItem();
+                    $food = new Food();
                     $foodCount = $food->count();
                     
-                    $subscription = new Subscription();
+                    $subscription = new SubscriptionOriginal();
                     $subscriptionCount = $subscription->count();
                     
                     echo '<div class="status-item">';
