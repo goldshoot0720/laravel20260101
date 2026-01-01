@@ -17,7 +17,6 @@ class DatabaseMigration {
         echo "資料庫: " . DB_DATABASE . "\n\n";
         
         try {
-            $this->createMigrationsTable();
             $this->createFoodTable();
             $this->createSubscriptionTable();
             
@@ -29,30 +28,18 @@ class DatabaseMigration {
         }
     }
     
-    // 創建遷移記錄表
-    private function createMigrationsTable() {
-        $sql = "CREATE TABLE IF NOT EXISTS migrations (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            migration VARCHAR(255) NOT NULL,
-            executed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            UNIQUE KEY unique_migration (migration)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
-        
-        $this->db->exec($sql);
-        echo "✅ 創建 migrations 表\n";
-    }
-    
     // 創建食品管理表
     private function createFoodTable() {
         $sql = "CREATE TABLE IF NOT EXISTS food (
             id INT AUTO_INCREMENT PRIMARY KEY,
-            name TEXT NOT NULL,
-            todate DATE NOT NULL,
-            amount INT NOT NULL DEFAULT 1,
-            price INT DEFAULT 0,
+            name TEXT,
+            todate DATE,
+            amount INT,
+            photo TEXT,
+            price INT,
             shop TEXT,
             photohash TEXT
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci";
         
         $this->db->exec($sql);
         echo "✅ 創建 food 表\n";
@@ -62,15 +49,13 @@ class DatabaseMigration {
     private function createSubscriptionTable() {
         $sql = "CREATE TABLE IF NOT EXISTS subscription (
             id INT AUTO_INCREMENT PRIMARY KEY,
-            name TEXT NOT NULL,
-            website_url TEXT,
-            category TEXT,
-            price INT NOT NULL DEFAULT 0,
-            billing_cycle TEXT,
-            start_date DATE NOT NULL,
-            next_payment_date DATE NOT NULL,
-            status TEXT
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
+            name TEXT,
+            nextdate DATE,
+            price INT,
+            site TEXT,
+            note TEXT,
+            account TEXT
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci";
         
         $this->db->exec($sql);
         echo "✅ 創建 subscription 表\n";
@@ -106,28 +91,25 @@ class DatabaseMigration {
         $sampleFoods = [
             [
                 'name' => '【張君雅】五香海苔休閒丸子',
-                'todate' => date('Y-m-d', strtotime('+15 days')),
+                'todate' => '2026-01-06',
                 'amount' => 3,
-                'price' => 150,
-                'shop' => '廚房櫃子'
+                'photo' => 'https://img.pchome.com.tw/cs/items/DBACC4A90089CJA/000001_1689668194.jpg',
+                'price' => null,
+                'shop' => null,
+                'photohash' => null
             ],
             [
                 'name' => '【張君雅】日式串燒休閒丸子',
-                'todate' => date('Y-m-d', strtotime('+16 days')),
+                'todate' => '2026-01-07',
                 'amount' => 6,
-                'price' => 300,
-                'shop' => '廚房櫃子'
-            ],
-            [
-                'name' => '有機蘋果',
-                'todate' => date('Y-m-d', strtotime('+7 days')),
-                'amount' => 5,
-                'price' => 150,
-                'shop' => '冰箱'
+                'photo' => 'https://online.carrefour.com.tw/on/demandware.static/-/Sites-carrefour-tw-m-inner/default/dwd792433f/images/large/0246532.jpeg',
+                'price' => 0,
+                'shop' => '',
+                'photohash' => ''
             ]
         ];
         
-        $sql = "INSERT INTO food (name, todate, amount, price, shop) VALUES (?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO food (name, todate, amount, photo, price, shop, photohash) VALUES (?, ?, ?, ?, ?, ?, ?)";
         $stmt = $this->db->prepare($sql);
         
         foreach ($sampleFoods as $food) {
@@ -135,8 +117,10 @@ class DatabaseMigration {
                 $food['name'],
                 $food['todate'],
                 $food['amount'],
+                $food['photo'],
                 $food['price'],
-                $food['shop']
+                $food['shop'],
+                $food['photohash']
             ]);
         }
         
@@ -156,40 +140,34 @@ class DatabaseMigration {
         
         $sampleSubscriptions = [
             [
-                'name' => '天虎/黃信訊/心臟內科',
-                'website_url' => 'https://www.tcmg.com.tw/index.php/main/schedule_time?id=18',
-                'category' => 'medical',
-                'price' => 530,
-                'billing_cycle' => 'monthly',
-                'start_date' => date('Y-m-d', strtotime('-30 days')),
-                'next_payment_date' => date('Y-m-d', strtotime('+1 day')),
-                'status' => 'active'
+                'name' => 'kiro pro',
+                'nextdate' => '2026-01-01',
+                'price' => 640,
+                'site' => 'https://app.kiro.dev/account/usage',
+                'note' => null,
+                'account' => null
             ],
             [
-                'name' => 'kiro pro',
-                'website_url' => 'https://app.kiro.dev/account/',
-                'category' => 'software',
-                'price' => 640,
-                'billing_cycle' => 'monthly',
-                'start_date' => date('Y-m-d', strtotime('-20 days')),
-                'next_payment_date' => date('Y-m-d', strtotime('+10 days')),
-                'status' => 'active'
+                'name' => '自然輸入法/ 已經取消訂閱。',
+                'nextdate' => '2026-01-03',
+                'price' => 129,
+                'site' => 'https://service.iqt.ai/AccountInfo',
+                'note' => '',
+                'account' => ''
             ]
         ];
         
-        $sql = "INSERT INTO subscription (name, website_url, category, price, billing_cycle, start_date, next_payment_date, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO subscription (name, nextdate, price, site, note, account) VALUES (?, ?, ?, ?, ?, ?)";
         $stmt = $this->db->prepare($sql);
         
         foreach ($sampleSubscriptions as $sub) {
             $stmt->execute([
                 $sub['name'],
-                $sub['website_url'],
-                $sub['category'],
+                $sub['nextdate'],
                 $sub['price'],
-                $sub['billing_cycle'],
-                $sub['start_date'],
-                $sub['next_payment_date'],
-                $sub['status']
+                $sub['site'],
+                $sub['note'],
+                $sub['account']
             ]);
         }
         

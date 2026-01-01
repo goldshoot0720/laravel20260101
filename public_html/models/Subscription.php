@@ -5,16 +5,13 @@ class Subscription extends BaseModel {
     protected $table = 'subscription';
     
     protected $fillable = [
-        'name', 'description', 'website_url', 'category', 'price', 'currency',
-        'billing_cycle', 'start_date', 'next_payment_date', 'last_payment_date',
-        'auto_renewal', 'payment_method', 'account_email', 'account_info',
-        'reminder_days', 'status', 'notes', 'tags'
+        'name', 'nextdate', 'price', 'site', 'note', 'account'
     ];
     
-    protected $hidden = ['account_info'];
+    protected $hidden = [];
     
     // 獲取所有訂閱，按下次付款日期排序
-    public function getAllSubscriptions($orderBy = 'next_payment_date ASC', $limit = null) {
+    public function getAllSubscriptions($orderBy = 'nextdate ASC', $limit = null) {
         return $this->all([], $orderBy, $limit);
     }
     
