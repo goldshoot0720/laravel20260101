@@ -49,6 +49,30 @@
                     <span>影片介紹</span>
                 </a>
             </li>
+            <li class="nav-item">
+                <a href="/lyrics" class="nav-link <?= ($current_page ?? '') === 'lyrics' ? 'active' : '' ?>">
+                    <span class="nav-icon">🎵</span>
+                    <span>鋒兄音樂歌詞</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/bank" class="nav-link <?= ($current_page ?? '') === 'bank' ? 'active' : '' ?>">
+                    <span class="nav-icon">🏦</span>
+                    <span>銀行統計</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/about" class="nav-link <?= ($current_page ?? '') === 'about' ? 'active' : '' ?>">
+                    <span class="nav-icon">ℹ️</span>
+                    <span>關於我們</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/import" class="nav-link <?= ($current_page ?? '') === 'import' ? 'active' : '' ?>">
+                    <span class="nav-icon">📥</span>
+                    <span>CSV匯入</span>
+                </a>
+            </li>
         </ul>
     </nav>
 

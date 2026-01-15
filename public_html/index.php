@@ -27,6 +27,10 @@ $routes = [
     'videos' => 'views/videos.php',
     'food' => 'views/food.php',
     'subscription' => 'views/subscription.php',
+    'lyrics' => 'views/lyrics.php',
+    'bank' => 'views/bank.php',
+    'about' => 'views/about.php',
+    'import' => 'views/import.php',
     'api' => 'api/handler.php'
 ];
 

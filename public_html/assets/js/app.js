@@ -65,6 +65,35 @@ function bindEventListeners() {
     
     // 側邊欄響應式
     handleResponsiveSidebar();
+    
+    const filterPills = document.querySelectorAll('.filter-pill');
+    filterPills.forEach(p => {
+        p.addEventListener('click', () => {
+            filterPills.forEach(x => x.classList.remove('active'));
+            p.classList.add('active');
+            const type = p.getAttribute('data-type');
+            applyGalleryFilter(type);
+        });
+    });
+    
+    if (getCurrentPage() === 'gallery') {
+        initGalleryLoader();
+    }
+    if (getCurrentPage() === 'videos') {
+        initVideoDurations();
+        const playButtons = document.querySelectorAll('.video-thumb .play-btn');
+        playButtons.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const card = btn.closest('.media-item');
+                if (card) showMediaPreview(card);
+            });
+        });
+    }
+    if (getCurrentPage() === 'lyrics') {
+        initAudioDurations();
+        initLyricsSimplePlayer();
+    }
 }
 
 // 搜尋處理
@@ -84,6 +113,9 @@ function performSearch(query) {
     const currentPage = getCurrentPage();
     
     switch(currentPage) {
+        case 'gallery':
+            searchGallery(query);
+            break;
         case 'food':
             searchFood(query);
             break;
@@ -138,14 +170,206 @@ function updateSearchResults(visible, total) {
     console.log(`📊 顯示 ${visible} / ${total} 項目`);
 }
 
+// 圖片搜尋
+function searchGallery(query) {
+    const items = document.querySelectorAll('.media-item');
+    let visibleCount = 0;
+    items.forEach(item => {
+        const titleEl = item.querySelector('.media-title');
+        const titleText = (titleEl?.textContent || '').toLowerCase();
+        if (titleText.includes(query) || query === '') {
+            item.style.display = '';
+            visibleCount++;
+        } else {
+            item.style.display = 'none';
+        }
+    });
+    updateSearchResults(visibleCount, items.length);
+}
+
+function applyGalleryFilter(type) {
+    const items = document.querySelectorAll('.media-item');
+    let visibleCount = 0;
+    items.forEach(item => {
+        const ext = item.getAttribute('data-ext') || '';
+        const match = type === 'all' || (type === 'jpg' ? ['jpg','jpeg'].includes(ext) : type === ext);
+        item.style.display = match ? '' : 'none';
+        if (match) visibleCount++;
+    });
+    updateSearchResults(visibleCount, items.length);
+}
+
+function initGalleryLoader() {
+    const loader = document.getElementById('galleryLoader');
+    if (!loader) return;
+    loader.style.display = 'flex';
+    const images = document.querySelectorAll('.image-thumb img');
+    let loaded = 0;
+    const done = () => {
+        loader.style.display = 'none';
+    };
+    if (images.length === 0) {
+        // 無圖片，直接隱藏
+        done();
+        return;
+    }
+    images.forEach(img => {
+        if (img.complete) {
+            loaded++;
+            if (loaded >= images.length) done();
+        } else {
+            img.addEventListener('load', () => {
+                loaded++;
+                if (loaded >= images.length) done();
+            });
+            img.addEventListener('error', () => {
+                loaded++;
+                if (loaded >= images.length) done();
+            });
+        }
+    });
+}
+
+function initVideoDurations() {
+    const cards = document.querySelectorAll('.video-thumb');
+    cards.forEach(card => {
+        const video = card.querySelector('video');
+        const pill = card.querySelector('.video-duration');
+        if (!video || !pill) return;
+        const setText = (sec) => {
+            if (!isFinite(sec) || sec <= 0) {
+                pill.textContent = '--:--';
+                return;
+            }
+            const h = Math.floor(sec / 3600);
+            const m = Math.floor((sec % 3600) / 60);
+            const s = Math.floor(sec % 60);
+            const mm = (h > 0 ? String(m).padStart(2,'0') : String(m));
+            const ss = String(s).padStart(2,'0');
+            pill.textContent = h > 0 ? `${h}:${mm}:${ss}` : `${mm}:${ss}`;
+        };
+        if (video.readyState >= 1) {
+            setText(video.duration);
+        } else {
+            video.addEventListener('loadedmetadata', () => setText(video.duration));
+            video.addEventListener('error', () => setText(NaN));
+        }
+    });
+}
+
+function initAudioDurations() {
+    const cards = document.querySelectorAll('.audio-thumb');
+    cards.forEach(card => {
+        const audio = card.querySelector('audio');
+        const pill = card.querySelector('.audio-duration');
+        if (!pill) return;
+        const setText = (sec) => {
+            if (!isFinite(sec) || sec <= 0) {
+                pill.textContent = '--:--';
+                return;
+            }
+            const h = Math.floor(sec / 3600);
+            const m = Math.floor((sec % 3600) / 60);
+            const s = Math.floor(sec % 60);
+            const mm = (h > 0 ? String(m).padStart(2,'0') : String(m));
+            const ss = String(s).padStart(2,'0');
+            pill.textContent = h > 0 ? `${h}:${mm}:${ss}` : `${mm}:${ss}`;
+        };
+        if (audio) {
+            if (audio.readyState >= 1) {
+                setText(audio.duration);
+            } else {
+                audio.addEventListener('loadedmetadata', () => setText(audio.duration));
+                audio.addEventListener('error', () => setText(NaN));
+            }
+        } else {
+            setText(NaN);
+        }
+    });
+}
+
+function initLyricsSimplePlayer() {
+    const audioCards = document.querySelectorAll('.audio-card');
+    const player = document.getElementById('lyricsAudio');
+    const titleEl = document.getElementById('lyricsTitle');
+    const textEl = document.getElementById('lyricsText');
+    const progress = document.getElementById('lyricsProgress');
+    const fill = document.getElementById('lyricsProgressFill');
+    const curEl = document.getElementById('lyricsCurrent');
+    const durEl = document.getElementById('lyricsDuration');
+    
+    if (player) {
+        const fmt = (sec) => {
+            if (!isFinite(sec) || sec <= 0) return '0:00';
+            const h = Math.floor(sec / 3600);
+            const m = Math.floor((sec % 3600) / 60);
+            const s = Math.floor(sec % 60);
+            const mm = h > 0 ? String(m).padStart(2,'0') : String(m);
+            const ss = String(s).padStart(2,'0');
+            return h > 0 ? `${h}:${mm}:${ss}` : `${mm}:${ss}`;
+        };
+        player.addEventListener('loadedmetadata', () => {
+            if (durEl) durEl.textContent = fmt(player.duration);
+        });
+        player.addEventListener('timeupdate', () => {
+            if (curEl) curEl.textContent = fmt(player.currentTime);
+            if (fill) {
+                const pct = player.duration ? (player.currentTime / player.duration) * 100 : 0;
+                fill.style.width = `${pct}%`;
+            }
+        });
+        if (progress) {
+            progress.addEventListener('click', (e) => {
+                const rect = progress.getBoundingClientRect();
+                const ratio = (e.clientX - rect.left) / rect.width;
+                if (player.duration) player.currentTime = Math.max(0, Math.min(player.duration * ratio, player.duration));
+            });
+        }
+    }
+    
+    audioCards.forEach(card => {
+        card.addEventListener('click', () => {
+            const audio = card.querySelector('audio');
+            const src = audio?.getAttribute('src') || '';
+            const name = card.querySelector('.media-title')?.textContent || '未知歌曲';
+            if (!player || !src) return;
+            player.src = src;
+            player.play().catch(() => {});
+            if (titleEl) titleEl.textContent = name;
+            // 嘗試載入同名 .txt（非同步歌詞，只顯示文字），找不到則保持原文本
+            const txt = src.replace(/\.(mp3|wav|m4a)$/i, '.txt');
+            if (textEl) {
+                fetch(txt).then(r => r.ok ? r.text() : Promise.reject('no txt'))
+                .then(text => {
+                    textEl.textContent = text;
+                }).catch(() => {
+                    // 保留現有歌詞文本
+                });
+            }
+        });
+    });
+}
+
+// 已移除 LRC 解析，改為純文字顯示
+
 // 媒體預覽
 function showMediaPreview(item) {
     const title = item.querySelector('.media-title')?.textContent || '未知項目';
     const info = item.querySelector('.media-info')?.textContent || '';
+    const videoEl = item.querySelector('.video-thumb video');
+    const audioEl = item.querySelector('.audio-thumb audio');
+    const imgEl = item.querySelector('.video-thumb img') || item.querySelector('img');
+    const src = videoEl?.getAttribute('src') || audioEl?.getAttribute('src') || imgEl?.getAttribute('src') || '';
+    const isVideo = !!videoEl && !!src;
+    const isAudio = !!audioEl && !!src;
     
-    // 創建預覽模態框
     const modal = document.createElement('div');
     modal.className = 'modal-overlay';
+    const bodyContent = isVideo
+        ? `<video src="${src}" controls autoplay style="width:100%; height:auto;" playsinline></video>`
+        : (isAudio
+            ? `<audio src="${src}" controls autoplay style="width:100%;"></audio>`
+            : `<img src="${src}" alt="${title}" style="max-width:100%; border-radius:8px;">`);
     modal.innerHTML = `
         <div class="modal-content">
             <div class="modal-header">
@@ -153,8 +377,8 @@ function showMediaPreview(item) {
                 <button class="modal-close">&times;</button>
             </div>
             <div class="modal-body">
-                <p>${info}</p>
-                <p>點擊項目查看詳細資訊</p>
+                ${bodyContent}
+                <div style="margin-top:12px; opacity:.85;">${info}</div>
             </div>
         </div>
     `;
@@ -311,8 +535,13 @@ function showWelcomeMessage() {
 // 獲取當前頁面
 function getCurrentPage() {
     const path = window.location.pathname;
+    if (path === '/' || path.includes('gallery')) return 'gallery';
     if (path.includes('food')) return 'food';
     if (path.includes('subscription')) return 'subscription';
+    if (path.includes('videos')) return 'videos';
+    if (path.includes('lyrics')) return 'lyrics';
+    if (path.includes('bank')) return 'bank';
+    if (path.includes('about')) return 'about';
     return 'dashboard';
 }
 
