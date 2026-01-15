@@ -93,6 +93,9 @@ function bindEventListeners() {
     if (getCurrentPage() === 'lyrics') {
         initAudioDurations();
         initLyricsSimplePlayer();
+        initLyricsLanguageFilters();
+        initLyricsTitleFilters();
+        initLyricsVariantFilters();
     }
 }
 
@@ -297,6 +300,22 @@ function initLyricsSimplePlayer() {
     const fill = document.getElementById('lyricsProgressFill');
     const curEl = document.getElementById('lyricsCurrent');
     const durEl = document.getElementById('lyricsDuration');
+    const panelLang = document.querySelectorAll('.lyrics-lang');
+    const panelVariant = document.querySelectorAll('.lyrics-variant');
+    const variantRow = document.getElementById('panelVariant');
+    const meta = [];
+    let current = { title: 'other', lang: 'zh', variant: 'none' };
+    audioCards.forEach(card => {
+        const audio = card.querySelector('audio');
+        meta.push({
+            el: card,
+            src: audio?.getAttribute('src') || '',
+            name: card.querySelector('.media-title')?.textContent || '',
+            lang: card.getAttribute('data-lang') || 'zh',
+            title: card.getAttribute('data-title') || 'other',
+            variant: card.getAttribute('data-variant') || 'none'
+        });
+    });
     
     if (player) {
         const fmt = (sec) => {
@@ -327,26 +346,107 @@ function initLyricsSimplePlayer() {
         }
     }
     
+    function applyPanelUI() {
+        panelLang.forEach(b => {
+            b.classList.toggle('active', b.getAttribute('data-lang') === current.lang);
+        });
+        panelVariant.forEach(b => {
+            b.classList.toggle('active', b.getAttribute('data-variant') === current.variant);
+        });
+        if (variantRow) variantRow.style.display = current.lang === 'zh' ? 'flex' : 'none';
+    }
+    function playFromMeta(m) {
+        if (!m || !player) return;
+        player.src = m.src;
+        player.play().catch(() => {});
+        if (titleEl) titleEl.textContent = m.name;
+        if (textEl) {
+            const txt = m.src.replace(/\.(mp3|wav|m4a)$/i, '.txt');
+            fetch(txt).then(r => r.ok ? r.text() : Promise.reject('no txt'))
+            .then(text => { textEl.textContent = text; })
+            .catch(() => {});
+        }
+    }
+    function selectByCurrent() {
+        const found = meta.find(x => x.title === current.title && x.lang === current.lang && (current.lang !== 'zh' || x.variant === current.variant));
+        playFromMeta(found);
+        applyPanelUI();
+    }
+    
     audioCards.forEach(card => {
         card.addEventListener('click', () => {
             const audio = card.querySelector('audio');
             const src = audio?.getAttribute('src') || '';
             const name = card.querySelector('.media-title')?.textContent || '未知歌曲';
             if (!player || !src) return;
-            player.src = src;
-            player.play().catch(() => {});
-            if (titleEl) titleEl.textContent = name;
-            // 嘗試載入同名 .txt（非同步歌詞，只顯示文字），找不到則保持原文本
-            const txt = src.replace(/\.(mp3|wav|m4a)$/i, '.txt');
-            if (textEl) {
-                fetch(txt).then(r => r.ok ? r.text() : Promise.reject('no txt'))
-                .then(text => {
-                    textEl.textContent = text;
-                }).catch(() => {
-                    // 保留現有歌詞文本
-                });
-            }
+            current.title = card.getAttribute('data-title') || 'other';
+            current.lang = card.getAttribute('data-lang') || 'zh';
+            current.variant = card.getAttribute('data-variant') || 'none';
+            selectByCurrent();
         });
+    });
+    panelLang.forEach(b => {
+        b.addEventListener('click', () => {
+            current.lang = b.getAttribute('data-lang') || 'zh';
+            selectByCurrent();
+        });
+    });
+    panelVariant.forEach(b => {
+        b.addEventListener('click', () => {
+            current.variant = b.getAttribute('data-variant') || 'none';
+            selectByCurrent();
+        });
+    });
+}
+
+function initLyricsLanguageFilters() {
+    const pills = document.querySelectorAll('.filter-lang');
+    pills.forEach(p => {
+        p.addEventListener('click', () => {
+            const val = p.getAttribute('data-lang') || 'all';
+            pills.forEach(x => x.classList.remove('active'));
+            p.classList.add('active');
+            applyLyricsFilters({ lang: val });
+        });
+    });
+}
+
+function initLyricsTitleFilters() {
+    const pills = document.querySelectorAll('.filter-title');
+    pills.forEach(p => {
+        p.addEventListener('click', () => {
+            const val = p.getAttribute('data-title') || 'all';
+            pills.forEach(x => x.classList.remove('active'));
+            p.classList.add('active');
+            applyLyricsFilters({ title: val });
+        });
+    });
+}
+
+function initLyricsVariantFilters() {
+    const pills = document.querySelectorAll('.filter-variant');
+    pills.forEach(p => {
+        p.addEventListener('click', () => {
+            const val = p.getAttribute('data-variant') || 'all';
+            pills.forEach(x => x.classList.remove('active'));
+            p.classList.add('active');
+            applyLyricsFilters({ variant: val });
+        });
+    });
+}
+
+const lyricsFilterState = { lang: 'all', title: 'all', variant: 'all' };
+function applyLyricsFilters(partial) {
+    Object.assign(lyricsFilterState, partial);
+    const cards = document.querySelectorAll('.audio-card');
+    cards.forEach(card => {
+        const lang = card.getAttribute('data-lang') || 'zh';
+        const title = card.getAttribute('data-title') || 'other';
+        const variant = card.getAttribute('data-variant') || 'none';
+        const okLang = lyricsFilterState.lang === 'all' || lyricsFilterState.lang === lang;
+        const okTitle = lyricsFilterState.title === 'all' || lyricsFilterState.title === title;
+        const okVariant = lyricsFilterState.variant === 'all' || lyricsFilterState.variant === variant;
+        card.style.display = (okLang && okTitle && okVariant) ? '' : 'none';
     });
 }
 

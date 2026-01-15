@@ -429,6 +429,20 @@ body {
     width: 0%;
 }
 
+.filter-lang.active {
+    background: linear-gradient(135deg,#2563eb,#9333ea) !important;
+    color: #fff !important;
+}
+.filter-title.active,
+.filter-variant.active {
+    background: linear-gradient(135deg,#2563eb,#9333ea) !important;
+    color: #fff !important;
+}
+.lyrics-pill.active {
+    background: linear-gradient(135deg,#10b981,#2563eb) !important;
+    color: #fff !important;
+}
+
 .media-overlay {
     display: none;
 }
