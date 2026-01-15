@@ -17,33 +17,33 @@ ob_start();
 <!-- 系統概覽 -->
 <div class="card fade-in">
     <div class="card-header">
-        <h2 class="card-title">🔥 鋒兄AI資訊系統</h2>
+        <h2 class="card-title">🔥 鋒兄塗哥公關資訊</h2>
         <span style="font-size: 14px; opacity: 0.7;">智能管理您的影片和圖片收藏，支援智能分類和快速搜尋</span>
     </div>
     
     <div style="text-align: center; padding: 40px 0;">
         <div style="font-size: 48px; margin-bottom: 20px;">🔥</div>
-        <h3 style="margin-bottom: 10px;">鋒兄AI資訊系統</h3>
+        <h3 style="margin-bottom: 10px;">鋒兄塗哥公關資訊</h3>
         <p style="opacity: 0.8; margin-bottom: 30px;">智能管理您的食品和訂閱服務，支援智能分類和快速搜尋</p>
         
         <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 12px; margin: 20px 0;">
-            <p style="margin-bottom: 15px;">鋒兄適習公開資訊 © 版權所有 2025 - 2125</p>
+            <p style="margin-bottom: 15px;">鋒兄塗哥公關資訊 © 版權所有 2025 - 2125</p>
             
             <div class="grid grid-2" style="margin-top: 20px;">
                 <div>
                     <h4 style="color: #fbbf24; margin-bottom: 10px;">🛠️ 前端技術</h4>
                     <ul style="list-style: none; text-align: left;">
-                        <li>• SolidJS (SolidStart)</li>
-                        <li>• 響應式設計 Netlify</li>
-                        <li>• 響應式設計 → Tailwind CSS</li>
+                        <li>• 原生 JavaScript</li>
+                        <li>• CSS / 響應式設計</li>
+                        <li>• 可接軌 React (Next.js)</li>
                     </ul>
                 </div>
                 <div>
-                    <h4 style="color: #f472b6; margin-bottom: 10px;">💎 後端技術</h4>
+                    <h4 style="color: #f472b6; margin-bottom: 10px;">💎 後端與資料庫</h4>
                     <ul style="list-style: none; text-align: left;">
-                        <li>• Strapi CMS</li>
-                        <li>• 多平台發佈 Strapi</li>
-                        <li>• RESTful API 支援</li>
+                        <li>• PHP (Laravel)</li>
+                        <li>• MySQL</li>
+                        <li>• RESTful API</li>
                     </ul>
                 </div>
             </div>

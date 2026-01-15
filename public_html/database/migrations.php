@@ -39,7 +39,7 @@ class DatabaseMigration {
             price INT,
             shop TEXT,
             photohash TEXT
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci";
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
         
         $this->db->exec($sql);
         echo "✅ 創建 food 表\n";
@@ -55,7 +55,7 @@ class DatabaseMigration {
             site TEXT,
             note TEXT,
             account TEXT
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci";
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
         
         $this->db->exec($sql);
         echo "✅ 創建 subscription 表\n";

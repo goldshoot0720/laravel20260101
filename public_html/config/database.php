@@ -3,15 +3,16 @@
 
 // 檢測環境（本地或遠端）
 function isLocalEnvironment() {
+    $host = $_SERVER['HTTP_HOST'] ?? '';
+    $serverName = $_SERVER['SERVER_NAME'] ?? '';
     $localIndicators = [
-        isset($_SERVER['HTTP_HOST']) && $_SERVER['HTTP_HOST'] === 'localhost',
-        isset($_SERVER['HTTP_HOST']) && $_SERVER['HTTP_HOST'] === '127.0.0.1',
-        isset($_SERVER['HTTP_HOST']) && strpos($_SERVER['HTTP_HOST'], 'localhost:') === 0,
-        isset($_SERVER['SERVER_NAME']) && $_SERVER['SERVER_NAME'] === 'localhost',
-        !isset($_SERVER['HTTP_HOST']) // CLI 環境
+        stripos($host, 'localhost') === 0,
+        stripos($host, '127.0.0.1') === 0,
+        stripos($serverName, 'localhost') === 0,
+        stripos($serverName, '127.0.0.1') === 0,
+        !isset($_SERVER['HTTP_HOST'])
     ];
-    
-    return in_array(true, $localIndicators);
+    return in_array(true, $localIndicators, true);
 }
 
 // 資料庫配置
@@ -25,12 +26,12 @@ $dbConfig = [
         'port' => 3306
     ],
     'production' => [
-        'host' => 'localhost',
-        'username' => 'feng_laravel',
-        'password' => 'ym0Tagood129',
-        'database' => 'feng_laravel',
+        'host' => getenv('DB_HOST') ?: 'localhost',
+        'username' => getenv('DB_USERNAME') ?: 'feng_laravel',
+        'password' => getenv('DB_PASSWORD') ?: '',
+        'database' => getenv('DB_DATABASE') ?: 'feng_laravel',
         'charset' => 'utf8mb4',
-        'port' => 3306
+        'port' => (int)(getenv('DB_PORT') ?: 3306)
     ]
 ];
 

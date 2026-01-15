@@ -13,16 +13,22 @@
         <div class="logo">
             <div class="logo-icon">鋒</div>
             <div>
-                <div style="font-weight: 600;">鋒兄AI系統</div>
-                <div style="font-size: 12px; opacity: 0.7;">歡迎使用鋒兄AI資訊系統</div>
+                <div style="font-weight: 600;">鋒兄塗哥公關資訊</div>
+                <div style="font-size: 12px; opacity: 0.7;">歡迎使用鋒兄塗哥公關資訊</div>
             </div>
         </div>
         
         <ul class="nav-menu">
             <li class="nav-item">
-                <a href="/" class="nav-link <?= ($current_page ?? '') === 'dashboard' ? 'active' : '' ?>">
+                <a href="/" class="nav-link <?= ($current_page ?? '') === 'gallery' ? 'active' : '' ?>">
                     <span class="nav-icon">🏠</span>
-                    <span>內頁</span>
+                    <span>首頁</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/dashboard" class="nav-link <?= ($current_page ?? '') === 'dashboard' ? 'active' : '' ?>">
+                    <span class="nav-icon">📊</span>
+                    <span>儀表板</span>
                 </a>
             </li>
             <li class="nav-item">
@@ -35,6 +41,12 @@
                 <a href="/subscription" class="nav-link <?= ($current_page ?? '') === 'subscription' ? 'active' : '' ?>">
                     <span class="nav-icon">📋</span>
                     <span>訂閱管理</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/videos" class="nav-link <?= ($current_page ?? '') === 'videos' ? 'active' : '' ?>">
+                    <span class="nav-icon">🎬</span>
+                    <span>影片介紹</span>
                 </a>
             </li>
         </ul>
